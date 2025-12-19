@@ -157,7 +157,11 @@ TEAM_DATA = {
         "resume_link": "daniel_resume.pdf"
     }
 }
-
+PROJECTS_SUMMARY = [
+    {"title": "Autonomous Research Agent", "category": "GenAI / NLP", "desc": "Multi-LLM orchestration pipeline utilizing Gemini & LLaMA.", "impact": "80% Reduction in time", "stack": ["LangChain", "FastAPI", "Groq"]},
+    {"title": "Edge-Native VisionFlow", "category": "Computer Vision", "desc": "Real-time object detection optimized for IoT hardware.", "impact": "98% Accuracy @ 24FPS", "stack": ["YOLO", "OpenCV", "IoT"]},
+    {"title": "High-Scale Data Extraction", "category": "Data Engineering", "desc": "Three-phase verification scraper processing 10k+ entities.", "impact": "100k+ Validated Records", "stack": ["Python", "SMTP", "Distributed"]}
+]
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -197,7 +201,7 @@ def home():
             "slug": slug,
             "skills": data["skills"][:4]
         })
-    return render_template('index.html', team=team_summary)
+    return render_template('index.html', team=team_summary, projects = PROJECTS_SUMMARY)
 
 
 @app.route('/team/<slug>')

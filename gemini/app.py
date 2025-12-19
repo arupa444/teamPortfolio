@@ -113,9 +113,6 @@ def profile(slug):
 
 @app.route('/download/<filename>')
 def download_resume(filename):
-    # In a real app, ensure 'static/docs' exists and contains the PDFs
-    # For this demo, we'll just redirect to home or show a dummy message
-    # return send_file(os.path.join('static/docs', filename), as_attachment=True)
     return f"Simulating download for {filename}... (Place PDFs in static/docs folder)"
 
 @app.route('/contact', methods=['POST'])

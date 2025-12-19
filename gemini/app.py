@@ -1,6 +1,6 @@
 import os
 import google.generativeai as genai
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, session
 from datetime import datetime
 
 app = Flask(__name__)
@@ -13,40 +13,55 @@ if GENAI_KEY:
 
 # --- SYSTEM CONTEXT FOR CHATBOT (The "Brain") ---
 # This string contains EVERYTHING from the resumes so the bot knows it.
+# --- SYSTEM CONTEXT FOR CHATBOT (The "Brain") ---
 SYSTEM_CONTEXT = """
-You are the AI Concierge for icElit.ai. You are elite, professional, and helpful.
-You have access to the following full profiles of the founding team. 
-If a user asks for contact info, experience, or skills, provide it accurately from this data.
+You are the AI Concierge for icElit.ai. You are elite, professional, and technical.
+Your tone is confident, futuristic, and precise.
+
+/// COMPANY IDENTITY: icElit.ai
+"Intelligence That Scales."
+icElit.ai is a next-generation Artificial Intelligence company focused on bridging the gap between academic research and industrial-grade deployment. 
+We specialize in Generative AI, Multi-Agent Systems, and High-Performance Computing.
+
+/// TEAM EXPERIENCE & AUTHORITY (CRITICAL CONTEXT)
+While icElit.ai is a fresh entity, the founding team possesses a deep, cumulative engineering background:
+- **3-4 Years of Indirect Experience:** The founders have been deeply embedded in AI research, algorithm optimization, and complex system design during their rigorous academic tenures (Honors degrees) and internships at prestigious institutions (DRDO, ISRO, IITs).
+- **1+ Year of Direct Production Experience:** The team has successfully deployed real-world solutions for US-based clients (OMICS International) and Indian enterprises, handling production traffic, payment gateways, and large-scale data pipelines.
+- **Engineering Mindset:** We are not just script-kiddies; we are Systems Architects who build custom sparse matrix storage formats, optimize edge-native computer vision, and architect multi-agent orchestration layers.
+
+/// FOUNDING TEAM PROFILES
 
 1. ARUPA NANDA SWAIN (CTO & Systems Architect)
    - Phone: +91 7735460467 | Email: arupaswain7735@gmail.com
    - Location: Hyderabad, Telangana
-   - Education: B.Tech CSE (Honors), XIM University (CGPA 7.50).
-   - Key Achievement: Invented Sparse Matrix Storage (Contiguous Clustering), 30-50% memory reduction.
-   - Experience:
-     * AI Developer, OMICS International (06/2025-10/2025): LLM pipelines with Gemini/Groq.
-     * Full-Stack Developer, The Little Journal (04/2024-06/2025): Custom CMS, automated PDF gen.
-     * Full-Stack Developer, Coincent.ai (04/2023-07/2023): Appointment booking system (300+ monthly increase).
-     * Microcontroller Programmer, CTTC (07/2021-03/2022): 6-axis humanoid robot programming.
+   - Core Competency: High-Performance Backend & Storage Optimization.
+   - Experience: 1+ Year Direct | 4 Years R&D.
+   - Key Achievement: Invented 'Contiguous Clustering' Sparse Matrix format (30-50% memory reduction).
+   - Tech Stack: Go, FastAPI, C/C++, System Design.
 
 2. ASHUTOSH MISHRA (Head of AI Research)
    - Phone: +91 95718 21291 | Email: ashutoshmishra21oct2003@gmail.com
    - Location: Bhubaneswar, Odisha
-   - Education: B.Tech CSE, XIM University (CGPA 8.06).
-   - Key Achievement: Reduced manual content creation time by 80% using Multi-Agent AI.
-   - Experience:
-     * AI Developer, OMICS International (07/2025-Present): Multi-agent AI systems, 40% ops effectiveness.
-     * Data Science Intern, Exposys Data Labs (05/2024-06/2024): Startup profitability regression models (98% accuracy).
+   - Core Competency: LLM Agents, NLP, & Deep Learning Theory.
+   - Experience: 1+ Year Direct | 3.5 Years R&D.
+   - Key Achievement: Reduced manual content creation by 80% using Multi-Agent Systems.
+   - Tech Stack: TensorFlow, PyTorch, LangChain, RAG Pipelines.
 
 3. BAVISETTI DANIEL (Lead ML Engineer & MLOps)
    - Phone: +91 9121592164 | Email: daniel.bavisetti0579@gmail.com
    - Location: Hyderabad, India
-   - Education: B.Tech CSE (Honors), XIM University (7.71 CGPA).
-   - Key Achievement: IoT Real-time vehicle detection at 24 FPS.
-   - Experience:
-     * AI Developer, OMICS International (08/2025-Present): High-throughput scraper (5000+ entries), RAG pipelines.
-     * AI/ML Intern, Labmentix (07/2025-08/2025): CSAT prediction on 85k records.
-     * Research Intern, NIT Rourkela (05/2024-07/2024): Smart Parking System (YOLOv5).
+   - Core Competency: Computer Vision, Edge AI, & MLOps Pipelines.
+   - Experience: 1+ Year Direct | 3.5 Years R&D.
+   - Key Achievement: Real-time IoT vehicle detection at 24 FPS on edge hardware.
+   - Tech Stack: YOLO, OpenCV, Docker/Kubernetes, IoT.
+
+/// SERVICES
+- Custom LLM Agents & RAG Pipelines.
+- Computer Vision for Edge/IoT.
+- High-Throughput Data Scraping & Automation.
+- Full-Stack AI Product Development.
+
+If a user asks about experience, emphasize the "3-4 years of rigorous R&D and 1+ year of production deployment."
 
 COMPANY MISSION: icElit.ai builds production-grade AI. We don't just wrap APIs; we build custom architectures, sparse matrix optimizations, and edge-native computer vision.
 """
@@ -65,7 +80,7 @@ TEAM_DATA = {
                     "twitter": "https://x.com/arupa_swain"},
         "skills": ["Go", "FastAPI", "Sparse Matrix", "C/C++", "System Design", "LangChain"],
         "experience": [
-            {"role": "AI Developer", "company": "OMICS International", "time": "06/2025 - 10/2025",
+            {"role": "AI Developer", "company": "OMICS International", "time": "06/2025 - Present",
              "desc": "Designed LLM-powered solution integrating FastAPI, Gemini, and Groq models reducing manual workload by 60%."},
             {"role": "Full-Stack Developer", "company": "The Little Journal", "time": "04/2024 - 06/2025",
              "desc": "Architected literary publishing platform serving Times of India clients; implemented custom CMS with automated PDF generation."},
@@ -163,28 +178,41 @@ PROJECTS_SUMMARY = [
     {"title": "High-Scale Data Extraction", "category": "Data Engineering", "desc": "Three-phase verification scraper processing 10k+ entities.", "impact": "100k+ Validated Records", "stack": ["Python", "SMTP", "Distributed"]}
 ]
 
+
 @app.route('/chat', methods=['POST'])
 def chat():
     if not GENAI_KEY:
         return jsonify({'response': "AI System Offline (Missing API Key). Contact Admin."})
 
     user_msg = request.json.get('message', '')
-    if not user_msg:
-        return jsonify({'response': "Empty signal received."})
+
+    # --- CONTEXT LOGIC ---
+    # Retrieve history from session or initialize empty list
+    history = session.get('chat_history', [])
+
+    # Create the prompt with history
+    # We format history as a dialogue script to keep context
+    conversation_so_far = ""
+    for turn in history[-10:]:  # Keep last 10 turns to save tokens
+        conversation_so_far += f"User: {turn['user']}\nAI: {turn['ai']}\n"
+
+    full_prompt = f"{SYSTEM_CONTEXT}\n\nCONVERSATION HISTORY:\n{conversation_so_far}\n\nCURRENT USER QUERY: {user_msg}\nAI RESPONSE:"
 
     try:
-        # Using Gemini 1.5 Flash (current standard equivalent for '2.5' request in 2025 context)
         model = genai.GenerativeModel('gemini-2.0-flash-lite')
-
-        # We send the system context + user message
-        full_prompt = f"{SYSTEM_CONTEXT}\n\nUSER INQUIRY: {user_msg}"
-
         response = model.generate_content(full_prompt)
-        return jsonify({'response': response.text})
+        ai_reply = response.text
+
+        # Update History
+        history.append({'user': user_msg, 'ai': ai_reply})
+        session['chat_history'] = history
+
+        return jsonify({'response': ai_reply})
     except Exception as e:
         return jsonify({'response': f"Neural Link Error: {str(e)}"})
 
 
+# ... (Keep context_processor, home, profile routes the same)
 @app.context_processor
 def inject_now():
     return {'now': datetime.utcnow()}

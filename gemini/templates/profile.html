@@ -6,12 +6,21 @@
     <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan/10 rounded-full blur-[100px] -z-10"></div>
 
     <div class="max-w-6xl mx-auto px-6">
+
+        <!-- NEW: BACK BUTTON -->
+        <div class="mb-12">
+            <a href="{{ url_for('home') }}" class="inline-flex items-center text-sm font-mono text-gray-400 hover:text-cyan transition-colors group">
+                <i class="fa-solid fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
+                RETURN TO HEADQUARTERS
+            </a>
+        </div>
+
         <div class="flex flex-col md:flex-row gap-12 items-start">
 
             <!-- IMAGE AVATAR -->
             <div class="w-full md:w-1/3">
                 <div class="aspect-[4/5] bg-gray-900 rounded-2xl border border-white/10 relative overflow-hidden group">
-                    <!-- Dynamic Image Loading with Fallback -->
+                    <!-- Dynamic Image Loading -->
                     <img src="{{ url_for('static', filename='assets/' + member.image) }}"
                          alt="{{ member.name }}"
                          class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
@@ -20,7 +29,7 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-deep via-transparent to-transparent opacity-80"></div>
                 </div>
 
-                <!-- Contact Details (Private Data) -->
+                <!-- Contact Details -->
                 <div class="mt-6 space-y-3 font-mono text-sm text-gray-400">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-envelope text-cyan"></i> {{ member.email }}
@@ -46,7 +55,7 @@
                 <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight">{{ member.name }}</h1>
                 <p class="text-xl text-gray-300 font-light leading-relaxed mb-8 border-l-2 border-cyan pl-6">{{ member.tagline }}</p>
 
-                <!-- NEW: OVERALL WORK SUMMARY -->
+                <!-- OVERALL WORK SUMMARY -->
                 <div class="bg-white/5 p-6 rounded-xl border border-white/10 mb-8">
                     <h3 class="text-xs font-bold text-cyan uppercase tracking-widest mb-2">/// Professional Profile</h3>
                     <p class="text-gray-300 leading-relaxed">{{ member.bio }}</p>
@@ -63,7 +72,7 @@
     </div>
 </section>
 
-<!-- DEEP DIVE SECTION -->
+<!-- DEEP DIVE SECTION (Experience & Projects) -->
 <section class="py-16 bg-[#02040a]">
     <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-12 gap-16">
 
@@ -89,7 +98,7 @@
             </div>
         </div>
 
-        <!-- BEST PROJECTS (5-7 Items) -->
+        <!-- BEST PROJECTS -->
         <div class="md:col-span-6">
             <h3 class="text-2xl font-bold mb-8 flex items-center text-white">
                 <i class="fa-solid fa-microchip text-cyan mr-3 text-sm"></i> Key Engineering Projects

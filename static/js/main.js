@@ -129,50 +129,10 @@ const initAnimations = () => {
     });
 };
 
-// 3. FORM HANDLING
-const initForm = () => {
-    const form = document.getElementById('contactForm');
-    const status = document.getElementById('formStatus');
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = form.querySelector('button');
-        const originalText = btn.innerText;
-
-        btn.innerText = "PROCESSING...";
-        btn.disabled = true;
-
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch('/contact', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-
-            status.innerText = result.message;
-            status.classList.remove('hidden');
-            status.classList.add('text-cyan');
-            form.reset();
-        } catch (error) {
-            status.innerText = "Connection Failed. Try again.";
-            status.classList.remove('hidden');
-            status.classList.add('text-red-500');
-        } finally {
-            btn.innerText = "SENT";
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.disabled = false;
-                status.classList.add('hidden');
-            }, 3000);
-        }
-    });
-};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     initThreeJS();
     initAnimations();
-    initForm();
 });
